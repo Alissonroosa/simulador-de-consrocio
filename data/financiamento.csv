@@ -1,0 +1,6 @@
+﻿codigo;segmento;modalidade;sistema_padrao;taxa_juros_aa_pct;indexador;seguro_mip_mensal_pct;seguro_dfi_mensal_pct;tarifa_mensal;tarifa_contratacao;iof_pct;entrada_min_pct;prazo_max_meses
+FIN-SFH;IMOVEL;Financiamento Imobiliário SFH;SAC;11,49;TR;0,025;0,006;25,00;3500,00;0,00;20,00;420
+FIN-SFI;IMOVEL;Financiamento Imobiliário SFI;SAC;12,99;TR;0,028;0,006;25,00;3500,00;0,00;30,00;360
+FIN-VEI;AUTO;Financiamento de Veículos (CDC);PRICE;22,90;PRE;0,00;0,00;0,00;990,00;3,00;20,00;60
+FIN-PES;PESADOS;Financiamento de Pesados / Máquinas;PRICE;18,50;PRE;0,00;0,00;0,00;1500,00;3,00;20,00;72
+FIN-SRV;SERVICOS;Crédito Pessoal para Serviços;PRICE;42,00;PRE;0,00;0,00;0,00;0,00;3,00;0,00;36

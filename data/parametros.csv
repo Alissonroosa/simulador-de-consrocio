@@ -1,0 +1,15 @@
+﻿chave;valor;descricao
+titulo_app;Simulador de Consórcios;Título exibido no topo e no PDF
+nome_cooperativa;Cooperativa Sicredi Modelo;Nome da cooperativa exibido no PDF
+janela_historico_meses;24;Meses de histórico de assembleias usados na projeção e na recomendação de lance
+minimo_assembleias_plano;12;Mínimo de assembleias do mesmo prazo para usar só o histórico do plano (senão usa o segmento inteiro)
+probabilidade_alvo_contemplacao_pct;50;Probabilidade acumulada usada para definir o mês projetado de contemplação
+confianca_lance_conservador_pct;90;Chance estimada de contemplação na assembleia - cenário conservador
+confianca_lance_moderado_pct;70;Chance estimada de contemplação na assembleia - cenário moderado
+confianca_lance_arrojado_pct;50;Chance estimada de contemplação na assembleia - cenário arrojado
+percentual_cdi_desconto_vpl;100;Percentual do CDI usado para trazer fluxos a valor presente nos comparativos
+horizonte_tendencia_lance_meses;12;Por quantos meses a tendência do menor lance é projetada antes de estabilizar
+registro_lista_sharepoint;;Nome da lista do SharePoint que recebe as simulações (vazio = não registra)
+registro_site_url;;URL do site da lista (vazio = site onde o app está hospedado)
+registro_flow_url;;Opcional: URL de um fluxo Power Automate com gatilho HTTP (premium)
+aviso_legal;Simulação meramente ilustrativa, sem valor de proposta. Valores de parcelas, crédito e saldo devedor são reajustados conforme o índice do plano. Projeções de contemplação e de lance são estimativas estatísticas baseadas no histórico de assembleias e não garantem contemplação. Consulte o regulamento e as condições vigentes.;Texto legal do rodapé e do PDF

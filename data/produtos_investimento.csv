@@ -1,0 +1,6 @@
+﻿codigo;produto;indexador;percentual_indexador;taxa_adicional_aa_pct;isento_ir;liquidez;aplicacao_minima
+INV-RDC;RDC Pós-fixado;CDI;100,00;0,00;N;Diária;100,00
+INV-LCA;LCA Sicredi;CDI;93,00;0,00;S;90 dias;1000,00
+INV-LCI;LCI Sicredi;CDI;92,00;0,00;S;90 dias;1000,00
+INV-POUP;Poupança;TR;100,00;6,17;S;Diária;0,00
+INV-IPCA;Fundo IPCA+;IPCA;100,00;5,50;N;D+30;500,00

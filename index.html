@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador de Consórcios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,600;0,700;1,600;1,700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Geração de PDF (se o CDN estiver bloqueado, copie os arquivos para a biblioteca e ajuste o src) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" defer></script>
+  <script src="index.js" defer></script>
+</head>
+<body class="scs-body">
+
+<!--
+  data-path  : pasta dos CSVs (relativa a esta página ou URL absoluta da biblioteca do SharePoint)
+  data-logo  : PNG do logo Sicredi (versão positiva, baixada em marca.sicredi.com.br > Área de downloads)
+  data-lista / data-site / data-flow : registro das simulações (opcional; também configurável em parametros.csv)
+-->
+<div id="scs-app" class="scs" data-path="data/" data-logo="assets/logo-sicredi.png" data-lista="" data-site="" data-flow="">
+
+  <header class="scs-header">
+    <div class="scs-header__brand">
+      <div class="scs-logo-box">
+        <img class="scs-logo" alt="Sicredi" hidden>
+      </div>
+      <div>
+        <h1 class="scs-title" data-bind="titulo">Simulador de Consórcios</h1>
+        <p class="scs-subtitle" data-bind="cooperativa">Simulação, projeção de contemplação e recomendação de lance</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="scs-status" role="status" aria-live="polite">Carregando bases de dados…</div>
+
+  <!-- ============================ TELA 1 – DADOS DA SIMULAÇÃO ============================ -->
+  <section class="scs-screen" data-screen="form" hidden>
+    <form class="scs-formcard" id="scs-form" novalidate>
+      <div class="scs-formcard__head">
+        <h2>Nova simulação</h2>
+        <p>Preencha os dados do associado e do plano e clique em <strong>Simular</strong>.</p>
+      </div>
+
+      <div class="scs-formgrid">
+        <fieldset class="scs-fieldset scs-span-2">
+          <legend>Associado</legend>
+          <div class="scs-row">
+            <label class="scs-field">
+              <span>Nome do associado</span>
+              <input type="text" id="in-cliente" autocomplete="off" placeholder="Opcional">
+            </label>
+            <label class="scs-field">
+              <span>Consultor(a)</span>
+              <input type="text" id="in-consultor" autocomplete="off" placeholder="Opcional">
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="scs-fieldset scs-span-2">
+          <legend>Segmento</legend>
+          <div class="scs-segcards" id="in-segmento" role="radiogroup" aria-label="Segmento"></div>
+        </fieldset>
+
+        <fieldset class="scs-fieldset">
+          <legend>Plano</legend>
+          <div class="scs-row">
+            <label class="scs-field">
+              <span>Prazo</span>
+              <select id="in-prazo"></select>
+            </label>
+            <label class="scs-field">
+              <span>1ª parcela</span>
+              <input type="month" id="in-inicio">
+            </label>
+          </div>
+          <label class="scs-field">
+            <span>Valor do crédito</span>
+            <input type="text" inputmode="decimal" id="in-credito" class="scs-money" value="300000">
+            <small class="scs-hint" id="hint-credito"></small>
+          </label>
+          <div class="scs-plan-info" id="plano-info"></div>
+        </fieldset>
+
+        <fieldset class="scs-fieldset">
+          <legend>Tipo de parcela</legend>
+          <div class="scs-segmented" role="radiogroup" aria-label="Tipo de parcela">
+            <label><input type="radio" name="in-tipo-parcela" value="INTEGRAL" checked><span>Integral</span></label>
+            <label><input type="radio" name="in-tipo-parcela" value="REDUZIDA"><span>Reduzida</span></label>
+          </div>
+          <div id="box-reduzida" hidden>
+            <div class="scs-row">
+              <label class="scs-field">
+                <span>Redução (%)</span>
+                <input type="number" id="in-reducao-pct" min="0" max="90" step="5" value="50">
+              </label>
+              <label class="scs-field">
+                <span>Aplicar sobre</span>
+                <select id="in-reducao-base">
+                  <option value="TOTAL">Parcela total</option>
+                  <option value="FC">Só fundo comum</option>
+                </select>
+              </label>
+            </div>
+            <label class="scs-field">
+              <span>Reduzida até</span>
+              <select id="in-reducao-ate">
+                <option value="METADE">Contemplação ou metade do plano (o que vier antes)</option>
+                <option value="CONTEMPLACAO">A contemplação</option>
+              </select>
+            </label>
+          </div>
+          <small class="scs-hint" id="hint-reduzida"></small>
+        </fieldset>
+
+        <fieldset class="scs-fieldset">
+          <legend>Lance</legend>
+          <div class="scs-row">
+            <label class="scs-field">
+              <span>Recursos próprios (%)</span>
+              <input type="number" id="in-lance-proprio" min="0" max="100" step="0.5" value="0">
+            </label>
+            <label class="scs-field">
+              <span>Lance embutido (%)</span>
+              <input type="number" id="in-lance-embutido" min="0" max="100" step="0.5" value="0">
+            </label>
+          </div>
+          <small class="scs-hint" id="hint-lance"></small>
+          <label class="scs-field">
+            <span>Ofertar lance a partir do mês</span>
+            <input type="number" id="in-lance-inicio" min="1" step="1" value="1">
+          </label>
+        </fieldset>
+
+        <fieldset class="scs-fieldset">
+          <legend>Contemplação</legend>
+          <div class="scs-row">
+            <label class="scs-field">
+              <span>Mês considerado</span>
+              <select id="in-contemp-modo">
+                <option value="PROJECAO">Projeção pelo histórico</option>
+                <option value="MANUAL">Informar manualmente</option>
+              </select>
+            </label>
+            <label class="scs-field" id="box-contemp-mes" hidden>
+              <span>Mês da contemplação</span>
+              <input type="number" id="in-contemp-mes" min="1" step="1" value="12">
+            </label>
+          </div>
+          <label class="scs-field">
+            <span>Após o lance, reduzir</span>
+            <select id="in-abatimento">
+              <option value="PRAZO">O prazo (mantém a parcela)</option>
+              <option value="PARCELA">A parcela (mantém o prazo)</option>
+            </select>
+          </label>
+        </fieldset>
+      </div>
+
+      <div class="scs-formcard__foot">
+        <div class="scs-preview" id="form-preview" aria-live="polite"></div>
+        <div class="scs-formcard__actions">
+          <button type="button" class="scs-btn scs-btn--ghost" data-action="limpar">Limpar</button>
+          <button type="submit" class="scs-btn scs-btn--primary scs-btn--lg">Simular</button>
+        </div>
+        <div class="scs-form-error" id="form-error" role="alert"></div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ============================ TELA 2 – RESULTADOS ============================ -->
+  <section class="scs-screen" data-screen="result" hidden>
+    <div class="scs-resultbar">
+      <div class="scs-resultbar__info">
+        <span class="scs-resultbar__id" id="res-id"></span>
+        <strong class="scs-resultbar__title" id="res-titulo"></strong>
+        <span class="scs-resultbar__sub" id="res-sub"></span>
+        <span class="scs-chip" id="res-registro" hidden></span>
+      </div>
+      <div class="scs-resultbar__actions">
+        <button type="button" class="scs-btn scs-btn--outline" data-action="editar">Editar simulação</button>
+        <button type="button" class="scs-btn scs-btn--outline" data-action="nova">Nova simulação</button>
+        <button type="button" class="scs-btn scs-btn--outline" data-action="print">Imprimir</button>
+        <button type="button" class="scs-btn scs-btn--primary" data-action="pdf">Exportar PDF</button>
+      </div>
+    </div>
+
+    <nav class="scs-tabs" role="tablist" aria-label="Seções da simulação">
+      <button type="button" role="tab" class="scs-tab" data-tab="resumo" aria-selected="true">Simulação geral</button>
+      <button type="button" role="tab" class="scs-tab" data-tab="reduzida" aria-selected="false">Parcela reduzida</button>
+      <button type="button" role="tab" class="scs-tab" data-tab="contemplacao" aria-selected="false">Contemplação e lance</button>
+      <button type="button" role="tab" class="scs-tab" data-tab="projecao" aria-selected="false">Projeção de parcelas</button>
+      <button type="button" role="tab" class="scs-tab" data-tab="pos" aria-selected="false">Pós-contemplação</button>
+      <button type="button" role="tab" class="scs-tab" data-tab="financiamento" aria-selected="false">Comparativo financiamento</button>
+      <button type="button" role="tab" class="scs-tab" data-tab="combinados" aria-selected="false">Produtos combinados</button>
+    </nav>
+
+    <!-- Simulação geral -->
+    <section class="scs-tabpanel" data-panel="resumo" role="tabpanel">
+      <div class="scs-kpis" id="resumo-kpis"></div>
+      <div class="scs-grid-2">
+        <div class="scs-card">
+          <h2 class="scs-card__title">Composição do plano</h2>
+          <div id="resumo-composicao"></div>
+        </div>
+        <div class="scs-card">
+          <h2 class="scs-card__title">Linha do tempo</h2>
+          <div id="resumo-timeline"></div>
+        </div>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Parcela mensal ao longo do plano</h2>
+        <div class="scs-chart"><canvas id="ch-resumo" height="300"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+    </section>
+
+    <!-- Parcela reduzida -->
+    <section class="scs-tabpanel" data-panel="reduzida" role="tabpanel" hidden>
+      <div class="scs-note" id="reduzida-nota"></div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Integral × reduzida</h2>
+        <div id="reduzida-tabela"></div>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Parcela mês a mês</h2>
+        <div class="scs-chart"><canvas id="ch-reduzida" height="300"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+    </section>
+
+    <!-- Contemplação e lance -->
+    <section class="scs-tabpanel" data-panel="contemplacao" role="tabpanel" hidden>
+      <div class="scs-kpis" id="contemp-kpis"></div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Probabilidade acumulada de contemplação</h2>
+        <div class="scs-chart"><canvas id="ch-contemp" height="300"></canvas><div class="scs-tip" hidden></div></div>
+        <p class="scs-caption" id="contemp-metodo"></p>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Recomendação de lance</h2>
+        <div id="lance-recomendacao"></div>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Menor lance vencedor – histórico mensal</h2>
+        <div class="scs-chart"><canvas id="ch-lances" height="280"></canvas><div class="scs-tip" hidden></div></div>
+        <details class="scs-details">
+          <summary>Ver assembleias usadas</summary>
+          <div id="lance-historico"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- Projeção de parcelas -->
+    <section class="scs-tabpanel" data-panel="projecao" role="tabpanel" hidden>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Composição da parcela</h2>
+        <div class="scs-chart"><canvas id="ch-projecao" height="300"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Crédito atualizado × saldo devedor</h2>
+        <div class="scs-chart"><canvas id="ch-saldo" height="280"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+      <div class="scs-card">
+        <div class="scs-card__head">
+          <h2 class="scs-card__title">Tabela mês a mês</h2>
+          <button type="button" class="scs-btn scs-btn--ghost" data-action="csv">Baixar CSV</button>
+        </div>
+        <div class="scs-table-wrap scs-table-wrap--tall" id="projecao-tabela"></div>
+      </div>
+    </section>
+
+    <!-- Pós-contemplação -->
+    <section class="scs-tabpanel" data-panel="pos" role="tabpanel" hidden>
+      <div class="scs-kpis" id="pos-kpis"></div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Reduzir prazo × reduzir parcela</h2>
+        <div id="pos-comparativo"></div>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Parcelas antes e depois da contemplação</h2>
+        <div class="scs-chart"><canvas id="ch-pos" height="300"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+    </section>
+
+    <!-- Comparativo financiamento -->
+    <section class="scs-tabpanel" data-panel="financiamento" role="tabpanel" hidden>
+      <div class="scs-card scs-card--form">
+        <div class="scs-form-grid">
+          <label class="scs-field">
+            <span>Modalidade</span>
+            <select id="fin-modalidade"></select>
+          </label>
+          <label class="scs-field">
+            <span>Sistema</span>
+            <select id="fin-sistema">
+              <option value="SAC">SAC</option>
+              <option value="PRICE">PRICE</option>
+            </select>
+          </label>
+          <label class="scs-field">
+            <span>Taxa de juros (% a.a.)</span>
+            <input type="number" id="fin-taxa" step="0.01" min="0">
+          </label>
+          <label class="scs-field">
+            <span>Entrada (%)</span>
+            <input type="number" id="fin-entrada" step="1" min="0" max="90">
+          </label>
+          <label class="scs-field">
+            <span>Prazo (meses)</span>
+            <input type="number" id="fin-prazo" step="1" min="1">
+          </label>
+        </div>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Consórcio × financiamento</h2>
+        <div id="fin-tabela"></div>
+        <p class="scs-caption" id="fin-conclusao"></p>
+      </div>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Desembolso acumulado</h2>
+        <div class="scs-chart"><canvas id="ch-fin" height="300"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+    </section>
+
+    <!-- Produtos combinados -->
+    <section class="scs-tabpanel" data-panel="combinados" role="tabpanel" hidden>
+      <div class="scs-card">
+        <h2 class="scs-card__title">Investimento para formar o lance</h2>
+        <div class="scs-form-grid">
+          <label class="scs-field">
+            <span>Produto</span>
+            <select id="inv-produto"></select>
+          </label>
+          <label class="scs-field">
+            <span>Aporte inicial</span>
+            <input type="text" inputmode="decimal" id="inv-inicial" class="scs-money" value="0">
+          </label>
+          <label class="scs-field">
+            <span>Aporte mensal</span>
+            <input type="text" inputmode="decimal" id="inv-mensal" class="scs-money" value="1000">
+          </label>
+          <label class="scs-field">
+            <span>Meta de lance</span>
+            <select id="inv-meta">
+              <option value="MODERADO">Recomendado – moderado</option>
+              <option value="CONSERVADOR">Recomendado – conservador</option>
+              <option value="ARROJADO">Recomendado – arrojado</option>
+              <option value="INFORMADO">Lance informado na simulação</option>
+            </select>
+          </label>
+        </div>
+        <div id="inv-resultado"></div>
+        <div class="scs-chart"><canvas id="ch-inv" height="280"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+
+      <div class="scs-card">
+        <h2 class="scs-card__title">Crédito para lance</h2>
+        <div class="scs-form-grid">
+          <label class="scs-field">
+            <span>Produto</span>
+            <select id="cred-produto"></select>
+          </label>
+          <label class="scs-field">
+            <span>Lance desejado</span>
+            <select id="cred-nivel">
+              <option value="MODERADO">Recomendado – moderado</option>
+              <option value="CONSERVADOR">Recomendado – conservador</option>
+              <option value="ARROJADO">Recomendado – arrojado</option>
+            </select>
+          </label>
+          <label class="scs-field">
+            <span>Recursos próprios disponíveis</span>
+            <input type="text" inputmode="decimal" id="cred-recursos" class="scs-money" value="0">
+          </label>
+          <label class="scs-field">
+            <span>Prazo do crédito (meses)</span>
+            <input type="number" id="cred-prazo" step="1" min="1" value="24">
+          </label>
+          <label class="scs-field">
+            <span>Ofertar lance no mês</span>
+            <input type="number" id="cred-mes" step="1" min="1" value="1">
+          </label>
+        </div>
+        <div id="cred-resultado"></div>
+        <div class="scs-chart"><canvas id="ch-cred" height="280"></canvas><div class="scs-tip" hidden></div></div>
+      </div>
+    </section>
+  </section>
+
+  <footer class="scs-footer">
+    <p data-bind="aviso"></p>
+    <p class="scs-footer__base" id="base-info"></p>
+  </footer>
+</div>
+
+</body>
+</html>
